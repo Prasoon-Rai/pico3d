@@ -1,0 +1,12 @@
+[package]
+name = "pico3d"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A tiny 3D graphics library for raspberry pi pico."
+readme = "README.md"
+repository = "https://github.com/Prasoon-Rai/pico3d"
+
+[dependencies]
+libm = "0.2"
+embedded-graphics = "0.8.2"
