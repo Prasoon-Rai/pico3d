@@ -13,4 +13,6 @@ pub mod core;
 
 pub use render::Viewport;
 pub use rotation::RotateOnAxis;
-pub use core::draw_point;
+pub use core::DrawPoint;
+pub use core::DrawLine;
+pub use core::DrawCubeWire;
