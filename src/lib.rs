@@ -6,13 +6,14 @@
 //! [`Viewport`] any `DrawTarget` and it will draw into it.
 
 #![cfg_attr(not(test), no_std)]
-
 pub mod render;
 pub mod rotation;
 pub mod core;
+pub mod math;
 
 pub use render::Viewport;
 pub use rotation::RotateOnAxis;
 pub use core::DrawPoint;
 pub use core::DrawLine;
 pub use core::DrawCubeWire;
+pub use core::DrawCubeWireV;
