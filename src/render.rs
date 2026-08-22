@@ -1,3 +1,4 @@
+use core::cmp;
 use embedded_graphics::{
     prelude::*,
     primitives::{PrimitiveStyle, Rectangle, StyledDrawable},
@@ -15,9 +16,15 @@ impl Viewport {
     }
     
     pub fn to_screen(&self, x: f32, y: f32) -> (f32, f32) {
+        let half = cmp::min(self.width, self.height) as f32 / 2.0;
         (
-            (x + 1.0) / 2.0 * self.width as f32,
-            (1.0 - (y + 1.0) / 2.0) * self.height as f32,
+            // Scaled according to display:
+            // (x + 1.0) / 2.0 * self.width as f32,
+            // (1.0 - (y + 1.0) / 2.0) * self.height as f32,
+
+            // Uniformly scaled:
+            (self.width / 2) as f32 + x * half,
+            (self.height / 2) as f32 - y * half
         )
     }
 
