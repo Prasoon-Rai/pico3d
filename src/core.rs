@@ -1,17 +1,13 @@
-/// Basic geometric 3D shapes drawing functions
-
-use embedded_graphics::{
-    draw_target::DrawTarget,
-    geometry::{Point, Size},
-    primitives::{PrimitiveStyle, Rectangle, StyledDrawable},
-};
-
-use embedded_graphics::primitives::{Line,};
-use libm::{cosf, sinf};
+#![allow(non_snake_case)]
+use embedded_graphics::{draw_target::DrawTarget, geometry::{Point, Size}, primitives::{PrimitiveStyle, Rectangle, StyledDrawable}, Drawable};
+use embedded_graphics::primitives::{Line, Primitive, Triangle};
+use libm::{cosf, roundf, sinf};
 use crate::math::Vector3;
 use crate::render::Viewport;
 use core::f32::consts::PI;
 
+
+// 2D drawing functions:
 pub fn DrawPoint<D>(
     viewport: &Viewport,
     display: &mut D,
@@ -24,7 +20,7 @@ pub fn DrawPoint<D>(
 where
     D: DrawTarget,
 {
-    let (sx, sy) = viewport.project(x, y, z);
+    let (sx, sy) = viewport.project(&Vector3::from((x, y, z)));
 
     Rectangle::new(
         Point::new((sx - size / 2.0) as i32, (sy - size / 2.0) as i32), Size::new(size as u32, size as u32), )
@@ -34,14 +30,14 @@ where
 pub fn DrawPointV<D>(
     viewport: &Viewport,
     display: &mut D,
-    position: Vector3,
+    position: &Vector3,
     size: f32,
     style: &PrimitiveStyle<D::Color>,
 ) -> Result<(), D::Error>
 where
     D: DrawTarget,
 {
-    let (sx, sy) = viewport.project(position.x, position.y, position.z);
+    let (sx, sy) = viewport.project(position);
 
     Rectangle::new(
         Point::new((sx - size / 2.0) as i32, (sy - size / 2.0) as i32), Size::new(size as u32, size as u32), )
@@ -58,8 +54,8 @@ pub fn DrawLine<D>(
 where
     D: DrawTarget,
 {
-    let (xS, yS) = viewport.project(start.0, start.1, start.2);
-    let (xE, yE) = viewport.project(end.0, end.1, end.2);
+    let (xS, yS) = viewport.project(&Vector3::from(start));
+    let (xE, yE) = viewport.project(&Vector3::from(end));
 
     Line::new(Point::new(xS as i32, yS as i32), Point::new(xE as i32, yE as i32)).draw_styled(style, display)
 }
@@ -74,16 +70,43 @@ pub fn DrawLineV<D>(
 where
     D: DrawTarget,
 {
-    let (xS, yS) = viewport.project(start.x, start.y, start.z);
-    let (xE, yE) = viewport.project(end.x, end.y, end.z);
+    let (xS, yS) = viewport.project(start);
+    let (xE, yE) = viewport.project(end);
 
     Line::new(Point::new(xS as i32, yS as i32), Point::new(xE as i32, yE as i32)).draw_styled(style, display)
 }
 
+pub fn DrawTriangle<D>(
+    viewport: &Viewport,
+    display: &mut D,
+    v1: &Vector3,
+    v2: &Vector3,
+    v3: &Vector3,
+    color: D::Color
+) -> Result<(), D::Error>
+where
+    D: DrawTarget,
+{
+    let (pa, pb, pc) =
+        (viewport.project(v1), viewport.project(v2), viewport.project(v3));
+
+    let cross = (pb.0 - pa.0) * (pc.1 - pa.1) - (pb.1 - pa.1) * (pc.0 - pa.0);
+    if cross <= 0.0 {
+        return Ok(());
+    }
+
+    let pt = |p: (f32, f32)| Point::new(roundf(p.0) as i32, roundf(p.1) as i32);
+
+    Triangle::new(Point::from(pt(pa)), pt(pb), pt(pc))
+        .into_styled(PrimitiveStyle::with_fill(color))
+        .draw(display)
+}
+
+// 3D drawing functions:
 pub fn DrawCubeWire<D> (
     viewport: &Viewport,
     display: &mut D,
-    position: Vector3,
+    position: &Vector3,
     width: f32,
     height: f32,
     depth: f32,
@@ -126,8 +149,8 @@ where
 pub fn DrawCubeWireV<D> (
     viewport: &Viewport,
     display: &mut D,
-    position: Vector3,
-    dimensions: Vector3,
+    position: &Vector3,
+    dimensions: &Vector3,
     style: &PrimitiveStyle<D::Color>,
 ) -> Result<(), D::Error>
 where
@@ -168,7 +191,7 @@ where
 pub fn DrawSphereWire<D> (
     viewport: &Viewport,
     display: &mut D,
-    centerPos: Vector3,
+    centerPos: &Vector3,
     radius: f32,
     rings: usize,
     slices: usize,
@@ -206,3 +229,38 @@ where
     Ok(())
 }
 
+pub fn DrawSphere<D>(
+    viewport: &Viewport,
+    display: &mut D,
+    centerPos: &Vector3,
+    radius: f32,
+    rings: usize,
+    slices: usize,
+    color: D::Color,
+) -> Result<(), D::Error>
+where
+    D: DrawTarget,
+{
+    let spherePoint = |i: usize, j: usize| -> Vector3 {
+        let phi = PI * (i as f32 / rings as f32);
+        let theta = 2.0 * PI * (j as f32 / slices as f32);
+        Vector3 {
+            x: centerPos.x + radius * sinf(phi) * cosf(theta),
+            y: centerPos.y + radius * cosf(phi),
+            z: centerPos.z + radius * sinf(phi) * sinf(theta),
+        }
+    };
+
+    for i in 0..rings {
+        for j in 0..slices {
+            let a = spherePoint(i, j);
+            let b = spherePoint(i, j + 1);
+            let c = spherePoint(i + 1, j + 1);
+            let d = spherePoint(i + 1, j);
+
+            DrawTriangle(viewport, display, &a, &b, &c, color)?;
+            DrawTriangle(viewport, display, &a, &c, &d, color)?;
+        }
+    }
+    Ok(())
+}
