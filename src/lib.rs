@@ -15,5 +15,8 @@ pub use render::Viewport;
 pub use rotation::RotateOnAxis;
 pub use core::DrawPoint;
 pub use core::DrawLine;
+pub use core::DrawTriangle;
 pub use core::DrawCubeWire;
 pub use core::DrawCubeWireV;
+pub use core::DrawSphere;
+pub use core::DrawSphereWire;
