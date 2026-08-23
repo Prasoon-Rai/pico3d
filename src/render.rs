@@ -1,8 +1,8 @@
 use core::cmp;
 use embedded_graphics::{
     prelude::*,
-    primitives::{PrimitiveStyle, Rectangle, StyledDrawable},
 };
+use crate::math::Vector3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Viewport {
@@ -28,8 +28,8 @@ impl Viewport {
         )
     }
 
-    pub fn project(&self, x: f32, y: f32, z: f32) -> (f32, f32) {
-        self.to_screen(x / z, y / z)
+    pub fn project(&self, cords: &Vector3) -> (f32, f32) {
+        self.to_screen(cords.x / cords.z, cords.y / cords.z)
     }
 }
 
