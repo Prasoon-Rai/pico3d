@@ -18,3 +18,5 @@ up for a great learning experience.
 
 I have built the library on top of [_Embedded Graphics_](https://crates.io/crates/embedded-graphics) crate, which is a
 popular 2D graphics library.
+
+I will keep updating this project in future.
